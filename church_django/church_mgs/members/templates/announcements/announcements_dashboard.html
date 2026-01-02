@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Daily Announcements & Report{% endblock %}
+{% load static %}
+{% load role_tags %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/announcements_dashboard.css' %}">
+<div class="page-header">
+    <h2>📢 Daily Announcements & Service Report</h2>
+    <p>{{ today }}</p>
+</div>
+
+<form method="post" class="card">
+    {% csrf_token %}
+
+    <h3>Service Information</h3>
+    <select name="service_type">
+        <option value="Sunday" {% if report.service_type == "Sunday" %}selected{% endif %}>Sunday</option>
+        <option value="Midweek">Midweek</option>
+        <option value="Prayers">Prayers</option>
+        <option value="Prayer Meeting">Prayer Meeting</option>
+        <option value="Bible Study">Bible Study</option>
+        <option value="Intercessory Prayer">Intercessory Prayer</option>
+        <option value="Special Prayer Campaign">Special Prayer Campaign</option>
+        <option value="Youth Prayer Gathering">Youth Prayer Gathering</option>
+        <option value="Prayer and Testimony">Prayer and Testimony</option>
+    </select>
+
+    <h3>Announcements</h3>
+    <textarea name="announcements" rows="4">{{ report.announcements }}</textarea>
+
+    <h3>Attendance Summary</h3>
+    <div class="grid-4">
+        <input type="number" name="total_attendance" placeholder="Total" value="{{ report.total_attendance }}">
+        <input type="number" name="men" placeholder="Men" value="{{ report.men }}">
+        <input type="number" name="women" placeholder="Women" value="{{ report.women }}">
+        <input type="number" name="children" placeholder="Children" value="{{ report.children }}">
+    </div>
+
+    <h3>Finance</h3>
+    <div class="grid-2">
+        <input type="number" step="0.01" name="offering_amount" placeholder="Offering" value="{{ report.offering_amount }}">
+        <input type="number" step="0.01" name="promises_amount" placeholder="Promises" value="{{ report.promises_amount }}">
+    </div>
+
+    <h3>Special Notes</h3>
+    <textarea name="special_notes" rows="3">{{ report.special_notes }}</textarea>
+
+    <button class="btn-primary">Save Report</button>
+
+    <p class="meta">
+        Last updated: {{ report.updated_on }}<br>
+        By: {{ report.created_by }}
+    </p>
+</form>
+{% endblock %}

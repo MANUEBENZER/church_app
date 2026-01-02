@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+{% load role_tags %}
+
+
+{% block content%}
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock %}
+<link rel="stylesheet" href="{% static 'css/add_attendance.css' %}">
+<script src="{% static 'js/add_attendance.js' %}"></script>
+<h2>Mark Attendance for {{ service_type }} – {{ today }}</h2>
+
+<!-- Service Selection -->
+<div class="service-select">
+    <a href="?service=Sunday"><button class="{% if service_type == 'Sunday' %}active{% endif %}">Sunday</button></a>
+    <a href="?service=Midweek"><button class="{% if service_type == 'Midweek' %}active{% endif %}">Midweek</button></a>
+    <a href="?service=Prayers"><button class="{% if service_type == 'Prayers' %}active{% endif %}">Prayers</button></a><a href="?service=Prayer Meeting"><button class="{% if service_type == 'Prayer Meeting' %}active{% endif %}">Prayer Meeting</button></a>
+    <a href="?service=Bible Study"><button class="{% if service_type == 'Bible Study' %}active{% endif %}">Bible Study</button></a>
+    <a href="?service=Intercessory Prayer"><button class="{% if service_type == 'Intercessory Prayer' %}active{% endif %}">Intercessory Prayer</button></a>
+    <a href="?service=Special Prayer Campaign"><button class="{% if service_type == 'Special Prayer Campaign' %}active{% endif %}">Special Prayer Campaign</button></a>
+    <a href="?service=Youth Prayer Gathering"><button class="{% if service_type == 'Youth Prayer Gathering' %}active{% endif %}">Youth Prayer Gathering</button></a>
+    <a href="?service=Prayer and Testimony"><button class="{% if service_type == 'Prayer and Testimony' %}active{% endif %}">Prayer and Testimony</button></a>
+</div>
+
+<!-- Search -->
+<form method="get" class="search-bar">
+    <input type="hidden" name="service" value="{{ service_type }}">
+    <input type="text" name="q" placeholder="Search members..." value="{{ search_query }}">
+    <button type="submit">Search</button>
+</form>
+
+<!-- Bulk Buttons -->
+<div class="bulk-buttons">
+    <input type="checkbox"
+       class="attendance-checkbox"
+       data-member="{{ member.id }}"
+       data-service="{{ service_type }}"
+       data-date="{{ today|date:'Y-m-d' }}"
+       {% if member.id in present_member_ids %}checked{% endif %}>
+</div>
+
+<!-- Attendance Table -->
+<table>
+    <tr>
+        <th>Mark</th>
+        <th>Photo</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Gender</th>
+        <th>Past Attendance</th>
+
+    </tr>
+
+    {% for member in members %}
+    <tr>
+        <td style="text-align:center;">
+           <input type="checkbox"
+           class="attendance-checkbox"
+           data-member="{{ member.id }}"
+           data-service="{{ service_type }}"
+           data-date="{{ today|date:'Y-m-d' }}"
+           {% if member.id in present_member_ids %}checked{% endif %}>
+        </td>
+        <td>
+         <img
+        src="{% if member.photo %}{{ member.photo.url }}{% else %}{% static 'img/default_user.png' %}{% endif %}"
+        class="member-photo"
+        alt="{{ member.full_name }}">
+        </td>
+        <td>{{ member.full_name }}</td>
+        <td>{{ member.phone }}</td>
+        <td>{{ member.gender }}</td>
+        <td>
+            {% for att in member.attendance_set.all|slice:"-5:" %}
+                {{ att.date }}: {{ att.present|yesno:"✔,✖" }}<br>
+            {% empty %}
+                No records
+            {% endfor %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<form id="csrf-form" style="display:none;">
+    {% csrf_token %}
+</form>
+
+<h4>Attendance Summary</h4>
+<ul>
+    <li>Present: {{ attendance_summary.total_present }}</li>
+    <li>Absent: {{ attendance_summary.total_absent }}</li>
+    <li>Total Marked: {{ attendance_summary.total_members }}</li>
+</ul>
+
+<p>
+    <strong>Total Attendance (Auto):</strong>
+    {{ report.total_attendance }}
+</p>
+{% endblock %}
+
+
+
+
+

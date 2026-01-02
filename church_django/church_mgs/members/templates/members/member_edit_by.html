@@ -1,0 +1,14 @@
+<!-- ===== AUDIT INFO ===== -->
+
+
+
+<link rel="stylesheet" href="{% static 'css/member_edit_by.css' %}">
+<div class="audit-info">
+    <small>
+        Last updated:
+        <strong>{{ member.updated_at|date:"M d, Y H:i" }}</strong>
+        {% if member.updated_by %}
+            by <strong>{{ member.updated_by.username }}</strong>
+        {% endif %}
+    </small>
+</div>

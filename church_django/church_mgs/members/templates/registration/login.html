@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Login | Church MGS{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <h1>Church Management System</h1>
+        <p>Sign in to continue</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {{ form.non_field_errors }}
+
+            <div class="form-group">
+                <label>Username</label>
+                {{ form.username }}
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                {{ form.password }}
+            </div>
+
+            <button type="submit" class="btn-primary">Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

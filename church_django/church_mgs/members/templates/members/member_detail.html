@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+{% load role_tags %}
+
+{% block title %}Member Profile{% endblock %}
+
+{% block content %}
+<!--<link rel="stylesheet" href="{% static 'css/memberdetail.css' %}"> -->
+<link rel="stylesheet" href="{% static 'css/memberdetailupdate.css' %}">
+<!--<div class="profile-card">
+
+     Profile Header
+    <div class="profile-header" style="text-align:center;">
+        {% if member.photo %}
+            <img src="{{ member.photo.url }}" class="profile-avatar">
+        {% else %}
+            <img src="{% static 'img/avatar.png' %}" class="profile-avatar">
+        {% endif %}
+
+        <h2>{{ member.full_name }}</h2>
+        <p>{{ member.position }} | {{ member.department }}</p>
+    </div>
+
+    <hr>
+
+    # Member Details Table
+    <table class="profile-table">
+        <tbody>
+            <tr>
+                <th>Membership ID</th>
+                <td>{{ member.membership_id }}</td>
+            </tr>
+            <tr>
+                <th>Gender</th>
+                <td>{{ member.gender }}</td>
+            </tr>
+            <tr>
+                <th>Date of Birth</th>
+                <td>{{ member.date_of_birth }}</td>
+            </tr>
+            <tr>
+                <th>Phone</th>
+                <td>{{ member.phone }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ member.email|default:"—" }}</td>
+            </tr>
+            <tr>
+                <th>Address</th>
+                <td>{{ member.address }}</td>
+            </tr>
+            <tr>
+                <th>Baptized</th>
+                <td>{{ member.baptized|yesno:"Yes,No" }}</td>
+            </tr>
+            <tr>
+                <th>Date Joined</th>
+                <td>{{ member.date_joined }}</td>
+            </tr>
+            <tr>
+                <th>Emergency Contact</th>
+                <td>{{ member.emergency_contact }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    # Attendance Summary
+    <h3>Attendance Summary</h3>
+    <table class="profile-table">
+        <tr>
+            <th>Total Attendance</th>
+            <td><strong>{{ attendance_count }}</strong></td>
+        </tr>
+    </table>
+
+</div>
+
+
+
+
+<div class="profile-card">   -->
+
+    <!-- ACTION BUTTONS -->
+    <div class="profile-actions no-print">
+        <a href="{% url 'members:member_list' %}" class="btn btn-secondary">← Back</a>
+
+        {% if user|has_group:"Secretary" %}
+            <a href="{% url 'members:member_edit' member.id %}" class="btn btn-primary">✏ Edit</a>
+        {% endif %}
+
+        <button onclick="window.print()" class="btn btn-outline">🖨 Print</button>
+    </div>
+
+    <!-- HEADER -->
+    <div class="profile-header">
+        {% if member.photo %}
+            <img src="{{ member.photo.url }}" class="profile-avatar">
+        {% else %}
+            <img src="{% static 'img/avatar.png' %}" class="profile-avatar">
+        {% endif %}
+
+        <h2>{{ member.full_name }}</h2>
+        <p>{{ member.position }} | {{ member.department }}</p>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event,'details')">Details</button>
+        <button class="tab-btn" onclick="openTab(event,'attendance')">Attendance</button>
+        <button class="tab-btn" onclick="openTab(event,'contributions')">Contributions</button>
+    </div>
+
+    <!-- DETAILS TAB -->
+    <div id="details" class="tab-content active">
+        <table class="profile-table">
+            <tr><th>Membership ID</th><td>{{ member.membership_id }}</td></tr>
+            <tr><th>Gender</th><td>{{ member.gender }}</td></tr>
+            <tr><th>Date of Birth</th><td>{{ member.date_of_birth }}</td></tr>
+            <tr><th>Phone</th><td>{{ member.phone }}</td></tr>
+            <tr><th>Email</th><td>{{ member.email|default:"—" }}</td></tr>
+            <tr><th>Address</th><td>{{ member.address }}</td></tr>
+            <tr><th>Baptized</th><td>{{ member.baptized|yesno:"Yes,No" }}</td></tr>
+            <tr><th>Date Joined</th><td>{{ member.date_joined }}</td></tr>
+            <tr><th>Emergency Contact</th><td>{{ member.emergency_contact }}</td></tr>
+        </table>
+    </div>
+
+    <!-- ATTENDANCE TAB -->
+    <div id="attendance" class="tab-content">
+        <h3>Total Attendance: {{ attendance_count }}</h3>
+
+        <table class="profile-table">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Times Present</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in attendance_summary %}
+                    <tr>
+                        <td>{{ row.service_type }}</td>
+                        <td>{{ row.total }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2">No attendance records</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- CONTRIBUTIONS TAB -->
+    <div id="contributions" class="tab-content">
+        <p class="muted">💰 Contributions module not connected yet.</p>
+        <p>You can add tithes, offerings, pledges later.</p>
+    </div>
+
+
+<hr>
+<h4>System Information</h4>
+
+<table class="table table-sm">
+    <tr>
+        <th>Last Updated</th>
+        <td>{{ member.updated_at|date:"M d, Y H:i" }}</td>
+    </tr>
+    <tr>
+        <th>Updated By</th>
+        <td>
+            {% if member.updated_by %}
+                {{ member.updated_by.get_full_name|default:member.updated_by.username }}
+            {% else %}
+                —
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+</div>
+<script>
+function openTab(evt, tabId) {
+    document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+
+    document.getElementById(tabId).classList.add("active");
+    evt.currentTarget.classList.add("active");
+}
+</script>
+{% endblock %}

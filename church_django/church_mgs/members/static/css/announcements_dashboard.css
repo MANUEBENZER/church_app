@@ -1,0 +1,31 @@
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+textarea, input, select {
+    width: 100%;
+    padding: 8px;
+}
+
+.btn-primary {
+    margin-top: 15px;
+    padding: 10px 16px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+}

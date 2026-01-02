@@ -1,0 +1,479 @@
+pip install pillow
+
+
+
+
+
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        a.button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        a.button:hover { background-color: #45a049; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        tr:hover { background-color: #f1f1f1; }
+        .attendance-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .present { background-color: #4CAF50; color: white; }
+        .absent { background-color: #f44336; color: white; }
+        .bulk-buttons {
+            margin: 15px 0;
+        }
+        .bulk-buttons button {
+            padding: 6px 12px;
+            margin-right: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+        }
+        .bulk-buttons button.unmark { background-color: #f44336; }
+        .attendance-percent {
+            font-weight: bold;
+            padding: 5px 8px;
+            border-radius: 4px;
+            color: white;
+        }
+        .high { background-color: #4CAF50; }
+        .medium { background-color: #ff9800; }
+        .low { background-color: #f44336; }
+        .filter-bar {
+            margin-bottom: 15px;
+        }
+        .filter-bar input, .filter-bar select {
+            padding: 6px 10px;
+            margin-right: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .pagination {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        .pagination button {
+            padding: 6px 12px;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+        }
+        .pagination button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .pagination button:hover { background-color: #45a049; color:white; }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+<body>
+{% if request.user.groups.all.0.name == 'Admin' %}
+    <button>Delete</button>
+{% endif %}
+    <h2>Attendance Dashboard</h2>
+
+    <a href="{% url 'add_attendance' %}" class="button">Add Attendance</a>
+
+    <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search by member name...">
+        <select id="serviceFilter">
+            <option value="">All Services</option>
+            {% for service in services %}
+                <option value="{{ service }}">{{ service }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="bulk-buttons">
+        <button type="button" onclick="bulkMark(true)">Mark All</button>
+        <button type="button" class="unmark" onclick="bulkMark(false)">Unmark All</button>
+    </div>
+
+    <table id="attendanceTable">
+        <thead>
+            <tr>
+                <th>Member &#x25B2;&#x25BC;</th>
+                {% for service in services %}
+                    <th>{{ service }}</th>
+                {% endfor %}
+                <th>Attendance %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+            <tr>
+                <td>{{ member.first_name }} {{ member.last_name }}</td>
+                {% for service in services %}
+                    {% with attendance=member.attendance_set|latest_attendance:service %}
+                        <td>
+                            {% if attendance %}
+                                <button class="attendance-btn {% if attendance.present %}present{% else %}absent{% endif %}"
+                                        data-attendance-id="{{ attendance.id }}">
+                                    {% if attendance.present %}✔{% else %}✖{% endif %}
+                                </button>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    {% endwith %}
+                {% endfor %}
+
+                {% with total=member.total_attendance present=member.present_count %}
+                    {% if total > 0 %}
+                        {% with percent=present|mul:100|div:total %}
+                            <td class="attendance-percent
+                                {% if percent >= 75 %}high
+                                {% elif percent >= 50 %}medium
+                                {% else %}low{% endif %}">
+                                {{ percent }}%
+                            </td>
+                        {% endwith %}
+                    {% else %}
+                        <td>-</td>
+                    {% endif %}
+                {% endwith %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination" id="pagination"></div>
+<a href="{% url 'export_attendance_excel' %}" class="button">
+    Export Excel
+</a>
+    <script>
+        const csrftoken = document.cookie.split('; ').find(row => row.startsWith('csrftoken')).split('=')[1];
+        const rowsPerPage = 10;  // change rows per page here
+        let currentPage = 1;
+
+        const rows = $("#attendanceTable tbody tr");
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+        function showPage(page) {
+            currentPage = page;
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            rows.hide();
+            rows.slice(start, end).show();
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const pagination = $("#pagination");
+            pagination.empty();
+            for(let i=1; i<=totalPages; i++){
+                const btn = $('<button/>').text(i);
+                if(i === currentPage) btn.addClass('active');
+                btn.click(() => showPage(i));
+                pagination.append(btn);
+            }
+        }
+
+        showPage(1);
+
+        // Toggle attendance
+        $('.attendance-btn').click(function() {
+            const btn = $(this);
+            const attendanceId = btn.data('attendance-id');
+
+            $.ajax({
+                url: "{% url 'ajax_toggle_attendance' %}",
+                method: "POST",
+                data: {
+                    'attendance_id': attendanceId,
+                    'csrfmiddlewaretoken': csrftoken
+                },
+                success: function(response){
+                    if(response.status === 'present'){
+                        btn.removeClass('absent').addClass('present').text('✔');
+                    } else if(response.status === 'absent'){
+                        btn.removeClass('present').addClass('absent').text('✖');
+                    }
+                }
+            });
+        });
+
+        // Bulk mark/unmark
+        function bulkMark(markPresent){
+            $('.attendance-btn').each(function(){
+                const btn = $(this);
+                const isPresent = btn.hasClass('present');
+                if(markPresent && !isPresent){ btn.click(); }
+                if(!markPresent && isPresent){ btn.click(); }
+            });
+        }
+
+        // Filtering
+        $("#searchInput").on("keyup", function() {
+            const value = $(this).val().toLowerCase();
+            rows.filter(function() {
+                $(this).toggle($(this).find("td:first").text().toLowerCase().indexOf(value) > -1)
+            });
+            showPage(1);
+        });
+
+        $("#serviceFilter").on("change", function() {
+            const service = $(this).val();
+            rows.each(function() {
+                let show = true;
+                if(service){
+                    const index = $("#attendanceTable thead th").index($("#attendanceTable thead th:contains('" + service + "')"));
+                    const cellText = $(this).find("td").eq(index-1).text().trim();
+                    show = cellText !== '-';
+                }
+                $(this).toggle(show);
+            });
+            showPage(1);
+        });
+    </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<canvas id="attendanceChart"></canvas>
+
+<script>
+fetch("{% url 'attendance_chart_data' %}")
+.then(res => res.json())
+.then(data => {
+    new Chart(document.getElementById('attendanceChart'), {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.date),
+            datasets: [
+                { label: 'Present', data: data.map(d => d.present) },
+                { label: 'Absent', data: data.map(d => d.absent) }
+            ]
+        }
+    });
+});
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<!DOCTYPE html>
+<html>
+<head>
+    <title>Mark Attendance</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background:#f9f9f9; }
+        h2 { margin-bottom:10px; }
+        .service-select button { padding: 8px 16px; margin-right: 10px; border-radius:5px; border:none; cursor:pointer; }
+        .service-select button.active { background-color:#4CAF50; color:white; }
+        .search-bar { margin-top:10px; }
+        input[type="text"] { padding:5px; width:200px; margin-right:10px; }
+        button.attendance-btn { padding:5px 10px; margin:2px; border:none; border-radius:4px; cursor:pointer; font-size:16px; }
+        button.present { background-color:#4CAF50; color:white; }
+        button.absent { background-color:#ddd; color:black; }
+        table { width:100%; border-collapse: collapse; margin-top:20px; background:white; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+        th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+        th { background-color:#f2f2f2; }
+        .bulk-buttons { margin-top:10px; }
+        .bulk-buttons button { padding:6px 12px; margin-right:5px; border-radius:4px; cursor:pointer; }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% load custom_filters %}
+</head>
+<body>
+    <h2>Mark Attendance for {{ service_type }} - {{ today }}</h2>
+
+    <!-- Service Selection -
+    <div class="service-select">
+        <a href="?service=Sunday"><button class="{% if service_type == 'Sunday' %}active{% endif %}">Sunday</button></a>
+        <a href="?service=Midweek"><button class="{% if service_type == 'Midweek' %}active{% endif %}">Midweek</button></a>
+       <a href="?service=Prayers"><button class="{% if service_type == 'Prayers' %}active{% endif %}">Prayers</button></a><a href="?service=Prayer Meeting"><button class="{% if service_type == 'Prayer Meeting' %}active{% endif %}">Prayer Meeting</button></a>
+       <a href="?service=Bible Study"><button class="{% if service_type == 'Bible Study' %}active{% endif %}">Bible Study</button></a>
+       <a href="?service=Intercessory Prayer"><button class="{% if service_type == 'Intercessory Prayer' %}active{% endif %}">Intercessory Prayer</button></a>
+       <a href="?service=Special Prayer Campaign"><button class="{% if service_type == 'Special Prayer Campaign' %}active{% endif %}">Special Prayer Campaign</button></a>
+       <a href="?service=Youth Prayer Gathering"><button class="{% if service_type == 'Youth Prayer Gathering' %}active{% endif %}">Youth Prayer Gathering</button></a>
+       <a href="?service=Prayer and Testimony"><button class="{% if service_type == 'Prayer and Testimony' %}active{% endif %}">Prayer and Testimony</button></a>
+    </div>
+
+    Search --
+    <form method="get" class="search-bar">
+        <input type="hidden" name="service" value="{{ service_type }}">
+        <input type="text" name="q" placeholder="Search members..." value="{{ search_query }}">
+        <button type="submit">Search</button>
+    </form>
+
+     Bulk Buttons --
+    <div class="bulk-buttons">
+        <button type="button" onclick="bulkMark(true)">Mark All</button>
+        <button type="button" onclick="bulkMark(false)">Unmark All</button>
+    </div>
+
+    Attendance Table ---
+    <table>
+        <tr>
+            <th>Mark</th>
+            <th> Name</th>
+            <th>Last Name</th>--
+            <th>Phone</th>
+            <th>Gender</th>
+            <th>Past Attendance</th>
+        </tr>
+        {% for member in members %}
+        <tr>
+            <td>
+                <button type="button" class="attendance-btn {% if member.id in present_member_ids %}present{% else %}absent{% endif %}"
+                        data-member="{{ member.id }}">
+                    {% if member.id in present_member_ids %}✔{% else %}✖{% endif %}
+                </button>
+            </td>
+            <td>{{ member.full_name }}</td>
+            <td>{{ member.last_name }}</td>--
+            <td>{{ member.phone }}</td>
+            <td>{{ member.gender }}</td>
+            <td>
+                {% for att in member.attendance_set.all|slice:"-7:" %}
+                    {{ att.date }}: {% if att.present %}✔{% else %}✖{% endif %}<br>
+                {% empty %}
+                    No records
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="{% url 'members:attendance_list' %}">View Attendance</a>
+    <script>
+    // CSRF setup for AJAX
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // AJAX attendance marking
+    $('.attendance-btn').click(function () {
+    const btn = $(this);
+    const memberId = btn.data('member');
+    const serviceType = '{{ service_type }}';
+    const today = '{{ today }}';
+
+    const isPresent = btn.hasClass('present');
+
+    $.ajax({
+        url: "{% url 'members:ajax_mark_attendance' %}",
+        method: "POST",
+        data: {
+            member_id: memberId,
+            service_type: serviceType,
+            date: today,
+            present: !isPresent,   // 👈 KEY FIX
+            csrfmiddlewaretoken: csrftoken
+        },
+        success: function (response) {
+            if (response.present) {
+                btn.removeClass('absent').addClass('present').text('✔');
+            } else {
+                btn.removeClass('present').addClass('absent').text('✖');
+            }
+        }
+        });
+    });
+
+         // Bulk mark/unmark function
+    function bulkMark(markPresent){
+        $('.attendance-btn').each(function(){
+            const btn = $(this);
+            const isPresent = btn.hasClass('present');
+            if(markPresent && !isPresent){
+                btn.click();
+            }
+            if(!markPresent && isPresent){
+                btn.click();
+            }
+        });
+    }
+        btn.prop("disabled", true);
+
+        success: function (response) {
+       btn.prop("disabled", false);
+       }
+    </script>
+</body>
+</html>
+       -->
+
+-->

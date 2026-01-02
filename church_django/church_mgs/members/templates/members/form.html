@@ -1,0 +1,76 @@
+{% load static %}
+<style>
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-box {
+    background: #fff;
+    width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.form-grid p {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-primary {
+    background: #1d4ed8;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+}
+</style>
+<div id="memberModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2>➕ Add New Member</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                {{ form.as_p }}
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn-primary">Save Member</button>
+                <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+<script>
+function closeModal() {
+    document.getElementById("memberModal").style.display = "none";
+}
+</script>

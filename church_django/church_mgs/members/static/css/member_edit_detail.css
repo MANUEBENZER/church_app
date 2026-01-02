@@ -1,0 +1,65 @@
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.badge-danger {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.profile-row {
+    display: flex;
+    gap: 25px;
+    align-items: flex-start;
+}
+
+.photo-section {
+    width: 200px;
+    text-align: center;
+}
+
+.avatar {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.photo-label {
+    font-size: 13px;
+    display: block;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+.card-header {
+    margin-bottom: 15px;
+}
+
+.btn-light {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+}
+
+@media print {
+    .btn,
+    .photo-label {
+        display: none;
+    }
+}

@@ -1,0 +1,149 @@
+<!--<!DOCTYPE html>
+<html>
+<head>
+    <title>Church Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .card { display:inline-block; padding:20px; margin:10px; border-radius:10px; background:#f2f2f2; width:200px; text-align:center; }
+        h2 { margin-bottom: 5px; }
+        canvas { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Church Dashboard</h1>
+
+    <div class="card">
+        <h2>Total Members</h2>
+        <p>{{ total_members }}</p>
+    </div>
+    <div class="card">
+        <h2>Present Today</h2>
+        <p>{{ present_today }}</p>
+    </div>
+
+    <h2>Attendance Trend (Last 7 Days)</h2>
+    <canvas id="attendanceChart" width="600" height="300"></canvas>
+
+    <script>
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        const data = {
+            labels: {{ attendance_data|pluck:'date'|safe }},
+            datasets: [{
+                label: 'Present Members',
+                data: {{ attendance_data|pluck:'count'|safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                fill: true,
+                tension: 0.4
+            }]
+        };
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: { y: { beginAtZero: true } }
+            }
+        };
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>
+{% load static %}-->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; background:#f4f6f9; padding:20px; }
+        h2 { color:#2e7d32; }
+        .card { background:white; padding:15px; border-radius:6px; margin-bottom:20px; }
+        .filters { display:flex; gap:10px; margin-bottom:15px; }
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:10px; text-align:center; border-bottom:1px solid #ddd; }
+        th { background:#2e7d32; color:white; }
+        .btn { padding:8px 12px; background:#2e7d32; color:white; text-decoration:none; border-radius:4px; }
+    </style>
+</head>
+<body>
+{% if request.user.groups.all.0.name == 'Admin' %}
+    <a href="{% url 'members:export_attendance_excel' %}" class="btn">📄 Excel</a>
+    <a href="{% url 'members:export_attendance_pdf' %}" class="btn">📄 PDF</a>
+{% endif %}
+
+<h2>📊 Attendance Dashboard</h2>
+
+<!-- FILTERS -->
+<div class="card">
+    <form method="get" class="filters">
+        <input type="date" name="start" value="{{ request.GET.start }}">
+        <input type="date" name="end" value="{{ request.GET.end }}">
+        <select name="service">
+            <option value="">All Services</option>
+            {% for s in services %}
+                <option value="{{ s }}" {% if s == request.GET.service %}selected{% endif %}>
+                    {{ s }}
+                </option>
+            {% endfor %}
+        </select>
+        <button class="btn">Filter</button>
+    </form>
+</div>
+
+<!-- SUMMARY -->
+<div class="card">
+    <strong>Total Records:</strong> {{ total }} |
+    <strong>Present:</strong> {{ present }} |
+    <strong>Absent:</strong> {{ absent }}
+</div>
+
+<!-- CHART -->
+<div class="card">
+    <canvas id="attendanceChart"></canvas>
+</div>
+
+<!-- EXPORTS -->
+<div class="card">
+    <a href="{% url ':members:export_attendance_excel' %}" class="btn">📄 Excel</a>
+    <a href="{% url 'members:export_attendance_pdf' %}" class="btn">📄 PDF</a>
+</div>
+
+<script>
+fetch("{% url 'attendance_chart_data' %}?{{ request.GET.urlencode }}")
+.then(r => r.json())
+.then(data => {
+    new Chart(document.getElementById('attendanceChart'), {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Present',
+                data: data.present
+            }]
+        }
+    });
+});
+
+
+    new Chart(weeklyChart, {
+  type: 'line',
+  data: {
+    labels: [{% for w in weekly %}"{{ w.week }}",{% endfor %}],
+    datasets: [{ label:'Weekly', data:[{% for w in weekly %}{{ w.total }},{% endfor %}] }]
+  }
+});
+
+new Chart(monthlyChart, {
+  type: 'bar',
+  data: {
+    labels: [{% for m in monthly %}"{{ m.month }}",{% endfor %}],
+    datasets: [{ label:'Monthly', data:[{% for m in monthly %}{{ m.total }},{% endfor %}] }]
+  }
+});
+</script>
+
+</body>
+</html>
+

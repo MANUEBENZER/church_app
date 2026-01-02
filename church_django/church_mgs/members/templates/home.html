@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Welcome | Church Management System {% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Church Management System</h1>
+    <p>Attendance · Members · Services · Reports</p>
+
+    {% if user.is_authenticated %}
+    {% if user.is_staff %}
+        <a href="/admin/" class="btn">Go to Admin Panel</a>
+    {% else %}
+        <a href="{% url 'members:post_login_redirect' %}" class="btn">Go to Dashboard</a>
+    {% endif %}
+{% else %}
+    <a href="{% url 'members:login' %}" class="btn">Login</a>
+{% endif %}
+</div>
+
+<div class="features">
+    <div class="card">📊 Attendance Tracking</div>
+    <div class="card">📅 Weekly Reports</div>
+    <div class="card">🔐 Role-Based Access</div>
+    <div class="card">📄 PDF & Excel Export</div>
+</div>
+{% endblock %}

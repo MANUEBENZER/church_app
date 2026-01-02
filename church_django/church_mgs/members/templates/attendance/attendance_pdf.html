@@ -1,0 +1,17 @@
+<h2>Attendance Report</h2>
+<table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+        <th>Member</th>
+        <th>Service</th>
+        <th>Date</th>
+        <th>Present</th>
+    </tr>
+    {% for att in attendances %}
+    <tr>
+        <td>{{ att.member.first_name }} {{ att.member.last_name }}</td>
+        <td>{{ att.service_type }}</td>
+        <td>{{ att.date }}</td>
+        <td>{% if att.present %}✔{% else %}✖{% endif %}</td>
+    </tr>
+    {% endfor %}
+</table>

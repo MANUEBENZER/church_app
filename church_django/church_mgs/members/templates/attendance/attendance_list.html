@@ -1,0 +1,129 @@
+{% extends "base.html"%}
+{% load custom_filters %}
+{% load role_tags %}
+
+{% load static %}
+
+
+{% block title %} Attendance Dashboard {% endblock %}
+
+{% block content %}
+
+<style>
+    .attendance-wrapper {
+        padding: 20px;
+        background-color: #f4f4f9;
+    }
+    h2 { color: #4CAF50; margin-bottom: 20px; }
+    a.button {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 8px 16px;
+        background-color: #4CAF50;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+    th, td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
+    th { background-color: #4CAF50; color: white; }
+    .present { background: #4CAF50; color: white; }
+    .absent { background: #f44336; color: white; }
+</style>
+
+<div class="attendance-wrapper">
+
+    <h2>Attendance Dashboard</h2>
+
+    {% if user.is_superuser %}
+        <button>Delete</button>
+    {% endif %}
+
+    <a href="{% url 'members:add_attendance' %}" class="button">Add Attendance</a>
+
+    <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search by member name...">
+        <select id="serviceFilter">
+            <option value="">All Services</option>
+            {% for service in services %}
+                <option value="{{ service }}">{{ service }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <table id="attendanceTable">
+        <thead>
+            <tr>
+                <th>Member</th>
+                {% for service in services %}
+                    <th>{{ service }}</th>
+                {% endfor %}
+                <th>Attendance %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+            <tr>
+                <td>{{ member.first_name }} {{ member.last_name }}</td>
+
+                {% for service in services %}
+                    {% with attendance=member.attendance_set|latest_attendance:service %}
+                        <td>
+                            {% if attendance %}
+                                <button class="attendance-btn {% if attendance.present %}present{% else %}absent{% endif %}"
+                                        data-attendance-id="{{ attendance.id }}">
+                                    {% if attendance.present %}✔{% else %}✖{% endif %}
+                                </button>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    {% endwith %}
+                {% endfor %}
+
+                {% with total=member.total_attendance present=member.present_count %}
+                    {% if total > 0 %}
+                        {% with percent=present|mul:100|div:total %}
+                            <td>{{ percent }}%</td>
+                        {% endwith %}
+                    {% else %}
+                        <td>-</td>
+                    {% endif %}
+                {% endwith %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'members:export_attendance_excel' %}" class="button">Export Excel</a>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+const csrftoken = document.cookie.split('; ')
+    .find(row => row.startsWith('csrftoken'))
+    ?.split('=')[1];
+
+$('.attendance-btn').click(function () {
+    const btn = $(this);
+    $.post("{% url 'members:ajax_toggle_attendance' %}", {
+        attendance_id: btn.data('attendance-id'),
+        csrfmiddlewaretoken: csrftoken
+    }, function (res) {
+        btn.toggleClass('present absent')
+           .text(res.status === 'present' ? '✔' : '✖');
+    });
+});
+</script>
+
+{% endblock %}

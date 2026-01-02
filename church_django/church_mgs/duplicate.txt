@@ -1,0 +1,24 @@
+python manage.py shell
+
+
+from members.models import Attendance
+from django.db.models import Count
+
+duplicates = (
+    Attendance.objects
+    .values("member_id", "date", "service_type")
+    .annotate(c=Count("id"))
+    .filter(c__gt=1)
+)
+
+for d in duplicates:
+    qs = Attendance.objects.filter(
+        member_id=d["member_id"],
+        date=d["date"],
+        service_type=d["service_type"]
+    ).order_by("-id")
+
+    # keep newest record
+    qs.exclude(id=qs.first().id).delete()
+
+print("✅ Duplicate attendance records removed")
