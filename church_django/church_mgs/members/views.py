@@ -10,7 +10,7 @@ import openpyxl
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404
-from .models  import Attendance, Member, DailyChurchReport
+from .models  import Attendance, Member, DailyChurchReport, Promise
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import UserPassesTestMixin
 from .utils import is_admin, is_secretary
@@ -122,11 +122,12 @@ def announcements_dashboard(request):
         total_members=Count('id')
     )
 
-    # 🔹 Auto-fill report total attendance
+    # 🔹 Auto-fill attendance
     report.total_attendance = attendance_summary['total_present'] or 0
     report.save(update_fields=['total_attendance'])
 
     if request.method == "POST":
+        # 🔹 Update report fields
         report.service_type = request.POST.get("service_type")
         report.announcements = request.POST.get("announcements")
         report.offering_amount = request.POST.get("offering_amount") or 0
@@ -135,12 +136,31 @@ def announcements_dashboard(request):
         report.created_by = request.user
         report.save()
 
-        return redirect("members:announcements_dashboard")
+        # 🔹 Get promise fields safely
+        member_name = request.POST.get("promise_member")
+        promise_type = request.POST.get("promise_type")
+        amount = request.POST.get("promise_amount")
+        item = request.POST.get("promise_item")
+        due_date = request.POST.get("promise_due_date")
 
+        # 🔹 Save promise only if filled
+        if member_name and promise_type:
+            Promise.objects.create(
+                report=report,
+                member_name=member_name,
+                promise_type=promise_type,
+                amount=amount if promise_type == "money" else None,
+                item_description=item if promise_type == "item" else "",
+                due_date=due_date or None
+            )
+
+        return redirect("members:announcements_dashboard")
+    promises= Promise.objects.filter(report=report)
     return render(request, "announcements/announcements_dashboard.html", {
         "report": report,
         "today": today,
-        "attendance_summary": attendance_summary
+        "attendance_summary": attendance_summary,
+        "promises": promises
     })
 
 

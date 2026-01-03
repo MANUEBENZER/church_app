@@ -51,7 +51,7 @@ class Member(models.Model):
             bottom = (height + min_dim) / 2
 
             img = img.crop((left, top, right, bottom))
-            img = img.resize((200, 200), Image.Resampling.LANCZOS)
+            img = img.resize((150, 150), Image.Resampling.LANCZOS)
 
             img.save(self.photo.path)
 
@@ -164,3 +164,37 @@ class DailyChurchReport(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.service_type}"
+
+
+
+
+class Promise(models.Model):
+    PROMISE_TYPE_CHOICES = (
+        ('money', 'Money'),
+        ('item', 'Item'),
+    )
+
+    report = models.ForeignKey(
+        DailyChurchReport,
+        on_delete=models.CASCADE,
+        related_name='promises'
+    )
+    member_name = models.CharField(max_length=150)
+    promise_type = models.CharField(max_length=10, choices=PROMISE_TYPE_CHOICES)
+
+    amount = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+
+    item_description = models.CharField(max_length=255, blank=True)
+
+    # ✅ NEW FIELD
+    due_date = models.DateField(
+        null=True, blank=True,
+        help_text="Date the member promised to bring the item or money"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.member_name} - {self.promise_type}"
