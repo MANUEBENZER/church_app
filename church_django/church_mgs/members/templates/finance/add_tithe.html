@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% load role_tags %}
+
+
+{% block title %}Add Tithe{% endblock %}
+
+{% block content %}
+<main class="content">
+    <div class="page-header">
+        <h1>Add Tithe</h1>
+    </div>
+
+    <form method="post" class="form-container">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit" class="btn-primary">Save Tithe</button>
+        <a href="{% url 'members:tithes_dashboard' %}" class="btn-secondary">Cancel</a>
+    </form>
+</main>
+{% endblock %}

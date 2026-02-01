@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Delete Promise</h2>
+<p>Are you sure you want to delete the promise for <strong>{{ promise.member_name }}</strong>?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, Delete</button>
+    <a href="{% url 'members:announcements_dashboard' %}">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Add Announcement{% endblock %}
+
+{% block content %}
+<h2>Add Announcement</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Title</label><br>
+    <input type="text" name="title" required><br><br>
+
+    <label>Message</label><br>
+    <div class="form-floating">
+  <textarea name="message" class="form-control" placeholder="Write your announcement here" id="message" style="height: 100px"></textarea>
+  <label for="message">Announcements</label>
+    </div>
+   <!--<textarea name="message" style="height: 50px; width: 100px;" required></textarea><br><br> -->
+<br>
+    <button type="submit">📢 Publish</button>
+    <a href="{% url 'members:announcement_dashboard' %}">Cancel</a>
+</form>
+{% endblock %}

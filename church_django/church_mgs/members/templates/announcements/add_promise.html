@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Add Promise{% endblock %}
+
+{% block content %}
+<h2>Add Promise</h2>
+
+<form method="post" class="form-grid">
+    {% csrf_token %}
+
+    <label>Member Name</label>
+    <input type="text" name="member_name" required>
+
+    <label>Promise Type</label>
+    <select name="promise_type">
+        <option value="money">Money</option>
+        <option value="item">Item</option>
+    </select>
+
+    <label>Amount</label>
+    <input type="number" name="amount" step="0.01">
+
+    <label>Item Description</label>
+    <input type="text" name="item">
+
+    <label>Due Date</label>
+    <input type="date" name="promise_due_date">
+
+    <button type="submit" class="btn-primary">✅ Save</button>
+    <a href="{% url 'members:promises_dashboard' %}">Cancel</a>
+</form>
+{% endblock %}

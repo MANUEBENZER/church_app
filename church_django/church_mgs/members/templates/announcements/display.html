@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Church Announcements</title>
+    <meta http-equiv="refresh" content="15">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            padding: 40px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 30px;
+        }
+        .announcement {
+            margin-bottom: 40px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 20px;
+        }
+        .announcement h2 {
+            font-size: 36px;
+            color: #ffd700;
+        }
+        .announcement p {
+            font-size: 28px;
+        }
+        
+        .scroll-container {
+            height: 100vh;
+            overflow: hidden;
+        }
+        .scroll-content {
+            animation: scrollUp 40s linear infinite;
+        }
+        @keyframes scrollUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(-100%); }
+        }
+        
+
+
+    </style>
+</head>
+<body>
+
+<h1>📢 Church Announcements</h1>
+<div class="scroll-container">
+    <div class="scroll-content">
+
+        {% for ann in announcements %}
+        <div class="announcement">
+            <h2>{{ ann.title }}</h2>
+            <p>{{ ann.message }}</p>
+        </div>
+    {% empty %}
+        <p style="text-align:center;font-size:30px;">
+            No announcements for today
+        </p>
+    {% endfor %}
+    </div>
+</div>
+
+<script>
+let slides = document.querySelectorAll(".slide");
+let index = 0;
+
+setInterval(() => {
+    slides.forEach(s => s.style.display = "none");
+    slides[index].style.display = "block";
+    index = (index + 1) % slides.length;
+}, 10000); // 10 seconds
+</script>
+</body>
+</html>

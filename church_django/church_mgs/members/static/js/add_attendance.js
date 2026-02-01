@@ -24,3 +24,51 @@ $(document).ready(function () {
         });
     });
 });
+function updateRowStyle(checkbox) {
+    const row = checkbox.closest("tr");
+    row.classList.toggle("present-row", checkbox.checked);
+    row.classList.toggle("absent-row", !checkbox.checked);
+}
+$("#mark-all").on("click", function () {
+    $(".attendance-checkbox").each(function () {
+        if (!this.checked) {
+            this.checked = true;
+            updateRowStyle(this);
+            sendAttendance(this);
+        }
+    });
+});
+function updateCounters() {
+    const total = $(".attendance-checkbox").length;
+    const present = $(".attendance-checkbox:checked").length;
+    $("#present-count").text(present);
+    $("#absent-count").text(total - present);
+    $("#total-count").text(total);
+}
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+function sendAttendance(checkbox) {
+    $.ajax({
+        url: "/ajax/mark-attendance/",
+        type: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken()
+        },
+        data: {
+            member_id: checkbox.dataset.member,
+            service_type: checkbox.dataset.service,
+            date: checkbox.dataset.date,
+            present: checkbox.checked
+        },
+        success: function () {
+            updateCounters();
+        }
+    });
+}
+
+$(".attendance-checkbox").on("change", function () {
+    updateRowStyle(this);
+    sendAttendance(this);
+});

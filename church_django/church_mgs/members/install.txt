@@ -476,4 +476,833 @@ fetch("{% url 'attendance_chart_data' %}")
 </html>
        -->
 
+
+
+
+
+
+
+@login_required
+@user_passes_test(is_secretary)
+def member_create(request):
+    if request.method == "POST":
+        form = MemberForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect("member:member_list")
+    else:
+        form = MemberForm()
+
+    return render(request, "members/create_member_form.html", {"form": form})
 -->
+
+<link rel="stylesheet" href="{% static 'css/add_attendance.css' %}">
+    <script src="{% static 'js/add_attendance.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Local Assets -->
+    <link rel="stylesheet" href="{% static 'css/add_attendance.css' %}">
+    <script src="{% static 'js/add_attendance.js' %}"></script>
+
+
+
+
+
+
+
+
+    {% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% load role_tags %}
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Local Assets -->
+<link rel="stylesheet" href="{% static 'css/add_attendance.css' %}">
+<script src="{% static 'js/add_attendance.js' %}"></script>
+
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Local Assets -->
+<link rel="stylesheet" href="{% static 'css/add_attendance.css' %}">
+<script src="{% static 'js/add_attendance.js' %}"></script>
+
+    <!-- External Libraries -->
+
+    <!-- Page Title -->
+    <h2>
+        Mark Attendance for {{ service_type }} – {{ today }}
+    </h2>
+
+    <!-- =========================
+         SERVICE SELECTION
+    ========================= -->
+    <div class="service-select">
+        <a href="?service=Sunday">
+            <button class="{% if service_type == 'Sunday' %}active{% endif %}">Sunday</button>
+        </a>
+
+        <a href="?service=Midweek">
+            <button class="{% if service_type == 'Midweek' %}active{% endif %}">Midweek</button>
+        </a>
+
+        <a href="?service=Prayers">
+            <button class="{% if service_type == 'Prayers' %}active{% endif %}">Prayers</button>
+        </a>
+
+        <a href="?service=Prayer Meeting">
+            <button class="{% if service_type == 'Prayer Meeting' %}active{% endif %}">
+                Prayer Meeting
+            </button>
+        </a>
+
+        <a href="?service=Bible Study">
+            <button class="{% if service_type == 'Bible Study' %}active{% endif %}">
+                Bible Study
+            </button>
+        </a>
+
+        <a href="?service=Intercessory Prayer">
+            <button class="{% if service_type == 'Intercessory Prayer' %}active{% endif %}">
+                Intercessory Prayer
+            </button>
+        </a>
+
+        <a href="?service=Special Prayer Campaign">
+            <button class="{% if service_type == 'Special Prayer Campaign' %}active{% endif %}">
+                Special Prayer Campaign
+            </button>
+        </a>
+
+        <a href="?service=Youth Prayer Gathering">
+            <button class="{% if service_type == 'Youth Prayer Gathering' %}active{% endif %}">
+                Youth Prayer Gathering
+            </button>
+        </a>
+
+        <a href="?service=Prayer and Testimony">
+            <button class="{% if service_type == 'Prayer and Testimony' %}active{% endif %}">
+                Prayer and Testimony
+            </button>
+        </a>
+    </div>
+
+    <!-- =========================
+         SEARCH BAR
+    ========================= -->
+    <form method="get" class="search-bar">
+        <input type="hidden" name="service" value="{{ service_type }}">
+        <input
+            type="text"
+            name="q"
+            placeholder="Search members..."
+            value="{{ search_query }}"
+        >
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- =========================
+         ATTENDANCE TABLE
+    ========================= -->
+<p><strong>Total Members:</strong> {{ members|length }}{{members}}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Mark</th>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Gender</th>
+                <th>Past Attendance</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for member in members %}
+            <tr>
+                <td style="text-align:center;">
+                    <input
+                        type="checkbox"
+                        class="attendance-checkbox"
+                        data-member="{{ member.id }}"
+                        data-service="{{ service_type }}"
+                        data-date="{{ today|date:'Y-m-d' }}"
+                        {% if member.id in present_member_ids %}checked{% endif %}
+                    >
+                </td>
+
+                <td>
+                    <img
+                        src="{% if member.photo %}
+                                {{ member.photo.url }}
+                             {% else %}
+                                {% static 'img/default_user.png' %}
+                             {% endif %}"
+                        class="member-photo"
+                        alt="{{ member.full_name }}"
+                    >
+                </td>
+
+                <td>{{ member.full_name }}</td>
+                <td>{{ member.phone }}</td>
+                <td>{{ member.gender }}</td>
+
+                <td>
+                    {% for att in member.attendance_set.all|slice:"-5:" %}
+                        {{ att.date }} : {{ att.present|yesno:"✔,✖" }}<br>
+                    {% empty %}
+                        <em>No records</em>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- =========================
+         CSRF TOKEN (AJAX)
+    ========================= -->
+    <form id="csrf-form" style="display:none;">
+        {% csrf_token %}
+    </form>
+
+    <!-- =========================
+         ATTENDANCE SUMMARY
+    ========================= -->
+    <h4>Attendance Summary</h4>
+    <ul>
+        <li><strong>Present:</strong> {{ attendance_summary.total_present }}</li>
+        <li><strong>Absent:</strong> {{ attendance_summary.total_absent }}</li>
+        <li><strong>Total Marked:</strong> {{ attendance_summary.total_members }}</li>
+    </ul>
+
+    <p>
+        <strong>Total Attendance (Auto):</strong>
+        {{ report.total_attendance }}
+    </p>
+    <link rel="stylesheet" href="{% static 'css/add_attendance.css' %}">
+    <script src="{% static 'js/add_attendance.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Local Assets -->
+    <link rel="stylesheet" href="{% static 'css/add_attendance.css' %}">
+    <script src="{% static 'js/add_attendance.js' %}"></script>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+<div class="dashboard-container">
+
+    <!-- SUMMARY CARDS -->
+    <section class="summary-grid">
+        <div class="summary-card glass">
+            <span>Total Members</span>
+            <h2>{{ attendance_summary.total_members }}</h2>
+        </div>
+        <div class="summary-card glass success">
+            <span>Present</span>
+            <h2>{{ attendance_summary.total_present }}</h2>
+        </div>
+        <div class="summary-card glass danger">
+            <span>Absent</span>
+            <h2>{{ attendance_summary.total_absent }}</h2>
+        </div>
+    </section>
+
+    <!-- HORIZONTAL PANELS -->
+    <div class="horizontal-sections">
+
+        <!-- DAILY SERVICE REPORT -->
+        <section class="card hover-card">
+            <h3 class="card-title">📝 Daily Service Report</h3>
+            <form method="post" class="form-grid">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Service Type</label>
+                    <select name="service_type">
+                        <option value="Sunday" {% if report.service_type == "Sunday" %}selected{% endif %}>Sunday</option>
+                        <option value="Midweek" {% if report.service_type == "Midweek" %}selected{% endif %}>Midweek</option>
+                        <option value="Prayers" {% if report.service_type == "Prayers" %}selected{% endif %}>Prayers</option>
+                        <option value="Prayer Meeting" {% if report.service_type == "Prayer Meeting" %}selected{% endif %}>Prayer Meeting</option>
+                        <option value="Bible Study" {% if report.service_type == "Bible Study" %}selected{% endif %}>Bible Study</option>
+                        <option value="Intercessory Prayer" {% if report.service_type == "Intercessory Prayer" %}selected{% endif %}>Intercessory Prayer</option>
+                        <option value="Special Prayer Campaign" {% if report.service_type == "Special Prayer Campaign" %}selected{% endif %}>Special Prayer Campaign</option>
+                        <option value="Youth Prayer Gathering" {% if report.service_type == "Youth Prayer Gathering" %}selected{% endif %}>Youth Prayer Gathering</option>
+                        <option value="Prayer and Testimony" {% if report.service_type == "Prayer and Testimony" %}selected{% endif %}>Prayer and Testimony</option>
+                    </select>
+                </div>
+                <div class="form-group full">
+                    <label>Announcements</label>
+                    <textarea name="announcements" rows="3">{{ report.announcements }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Offering Amount</label>
+                    <input type="number" name="offering_amount" value="{{ report.offering_amount }}" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Promises Amount</label>
+                    <input type="number" name="promises_amount" value="{{ report.promises_amount }}" step="0.01">
+                </div>
+                <div class="form-group full">
+                    <label>Special Notes</label>
+                    <textarea name="special_notes" rows="2">{{ report.special_notes }}</textarea>
+                </div>
+                <div class="form-actions full">
+                    <button type="submit" class="btn-primary">💾 Save Report</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- TODAY'S PROMISES -->
+        <section class="card hover-card">
+            <h3 class="card-title">🤝 Today's Promises</h3>
+            <!-- Filter Controls -->
+            <form method="get" class="promise-filters" style="margin-bottom:10px;">
+                <label>Show:
+                    <select name="promise_filter" onchange="this.form.submit()">
+                        <option value="all" {% if request.GET.promise_filter == 'all' or not request.GET.promise_filter %}selected{% endif %}>All</option>
+                        <option value="overdue" {% if request.GET.promise_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                        <option value="fulfilled" {% if request.GET.promise_filter == 'fulfilled' %}selected{% endif %}>Fulfilled</option>
+                        <option value="unfulfilled" {% if request.GET.promise_filter == 'unfulfilled' %}selected{% endif %}>Unfulfilled</option>
+                    </select>
+                </label>
+            </form>
+            <div class="table-wrapper">
+                <table class="table striped-table">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Photo</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Item</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for promise in promises %}
+                        <tr class="{% if promise.due_date and promise.due_date < today and not promise.fulfilled %}overdue{% endif %}">
+                            <td>{{ promise.member_name }}</td>
+                            <td>
+                                {% if promise.member and promise.member.photo %}
+                                    <img src="{{ promise.member.photo.url }}" class="member-thumbnail">
+                                {% else %}
+                                    <img src="{% static 'images/default_profile.png' %}" class="member-thumbnail">
+                                {% endif %}
+                            </td>
+                            <td>{{ promise.get_promise_type_display }}</td>
+                            <td>{% if promise.promise_type == 'money' %}{{ promise.amount }}{% else %}—{% endif %}</td>
+                            <td>{% if promise.promise_type == 'item' %}{{ promise.item_description }}{% else %}—{% endif %}</td>
+                            <td>{{ promise.due_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if promise.fulfilled %}
+                                    <span class="status fulfilled">Fulfilled</span>
+                                {% elif promise.due_date and promise.due_date < today %}
+                                    <span class="status overdue">Overdue</span>
+                                {% else %}
+                                    <span class="status unfulfilled">Unfulfilled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'members:edit_promise' promise.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-edit">Edit</button>
+                                </form>
+                                <form method="post" action="{% url 'members:delete_promise' promise.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-delete" onclick="return confirm('Delete this promise?');">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="empty">No promises recorded</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ADD NEW PROMISE -->
+        <section class="card hover-card">
+            <h3 class="card-title">➕ Add New Promise</h3>
+            <form method="post" class="form-grid">
+                {% csrf_token %}
+                <div class="form-group full">
+                    <label>Member Name</label>
+                    <input type="text" name="member_name" placeholder="Start typing member name..." required>
+                </div>
+                <div class="form-group">
+                    <label>Promise Type</label>
+                    <select name="promise_type">
+                        <option value="money">Money</option>
+                        <option value="item">Item</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" name="amount" step="0.01">
+                </div>
+                <div class="form-group full">
+                    <label>Item Description</label>
+                    <input type="text" name="item">
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" name="promise_due_date">
+                </div>
+                <div class="form-actions full">
+                    <button type="submit" class="btn-primary">✅ Add Promise</button>
+                </div>
+            </form>
+        </section>
+
+    </div>
+
+    <!-- META INFO -->
+    <p class="meta">
+        Last updated: {{ report.updated_on }} · By {{ report.created_by }}
+    </p>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+announcements_dashboard 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* General Layout */
+body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background: #f3f4f6;
+    margin: 0;
+    color: #374151;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1.5rem;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+/* Gradient Header */
+.gradient-header {
+    background: linear-gradient(135deg, #2563eb, #9333ea);
+    color: #fff;
+    padding: 1.5rem;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.gradient-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+.page-date {
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+/* Summary Cards */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+.summary-card {
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: center;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.summary-card h2 {
+    margin: 0.5rem 0 0;
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+.summary-card.success { border-left: 4px solid #10b981; }
+.summary-card.danger { border-left: 4px solid #ef4444; }
+
+/* Horizontal Sections */
+.horizontal-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+.horizontal-sections .card {
+    flex: 1 1 350px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+/* Card Titles */
+.card-title {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Hover Animation */
+.hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+/* Forms */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-group.full {
+    grid-column: 1 / -1;
+}
+.form-group label {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    color: #374151;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.6rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+.btn-primary {
+    background: #2563eb;
+    color: #fff;
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+/* Tables */
+.table-wrapper {
+    overflow-x: auto;
+}
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+.table th, .table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+.table th {
+    background: #f3f4f6;
+    font-weight: 600;
+    color: #374151;
+}
+.table .empty {
+    text-align: center;
+    color: #9ca3af;
+}
+.striped-table tbody tr:nth-child(odd) {
+    background: #f9fafb;
+}
+.striped-table tbody tr:hover {
+    background: #eef2ff;
+}
+
+/* Member Thumbnail */
+.member-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Meta Info */
+.meta {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: right;
+    margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .horizontal-sections {
+        flex-direction: column;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def get_live_announcements():
+        now = localtime()
+        return Announcement.objects.filter(
+            created_at=date.today(),
+            start_time__lte=now.time(),
+            end_time__gte=now.time(),
+            is_active=True
+        ).order_by("created_at")
+
+
+
+
+
+
+
+
+
+
+========================= -->
+<div class="finance-cards">
+    <div class="card income">
+        <h4>Total Income</h4>
+        <p>GHS {{ total_income }}</p>
+    </div>
+
+    <div class="card expense">
+        <h4>Total Expenses</h4>
+        <p>GHS {{ total_expense }}</p>
+    </div>
+
+    <div class="card balance">
+        <h4>Net Balance</h4>
+        <p>GHS {{ net_balance }}</p>
+    </div>
+</div>
+
+<!-- =========================
+     MONTHLY SUMMARY
+========================= -->
+<h3>This Month</h3>
+<ul>
+    <li>Income: <strong>GHS {{ monthly_income }}</strong></li>
+    <li>Expenses: <strong>GHS {{ monthly_expense }}</strong></li>
+</ul>
+
+<!-- =========================
+     INCOME BREAKDOWN
+========================= -->
+<h3>Income Breakdown</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Total (GHS)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in income_by_type %}
+        <tr>
+            <td>{{ row.income_type|title }}</td>
+            <td>{{ row.total }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2">No income records</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- =========================
+     EXPENSE BREAKDOWN
+========================= -->
+<h3>Expense Breakdown</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Total (GHS)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in expense_by_category %}
+        <tr>
+            <td>{{ row.category|title }}</td>
+            <td>{{ row.total }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2">No expense records</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- =========================
+     RECENT TRANSACTIONS
+========================= -->
+<h3>Recent Income</h3>
+<ul>
+    {% for inc in recent_incomes %}
+        <li>{{ inc.date }} – {{ inc.get_income_type_display }}: GHS {{ inc.amount }}</li>
+    {% empty %}
+        <li>No recent income</li>
+    {% endfor %}
+</ul>
+
+<h3>Recent Expenses</h3>
+<ul>
+    {% for exp in recent_expenses %}
+        <li>{{ exp.date }} – {{ exp.get_category_display }}: GHS {{ exp.amount }}</li>
+    {% empty %}
+        <li>No recent expenses</li>
+    {% endfor %}
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.layout {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: #1e293b;
+    color: white;
+    transition: width 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebar.collapsed {
+    width: 70px;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #0f172a;
+}
+
+.logo {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.menu {
+    list-style: none;
+}
+
+.menu li a {
+    display: block;
+    padding: 15px;
+    color: white;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.menu li a:hover {
+    background: #334155;
+}
+
+/* Main content */
+.content {
+    flex: 1;
+    padding: 20px;
+    background: #f1f5f9;
+}

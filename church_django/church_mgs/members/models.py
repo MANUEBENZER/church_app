@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from PIL import Image
+from django.db import models
+from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class Member(models.Model):
@@ -34,7 +37,8 @@ class Member(models.Model):
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     date_of_birth = models.DateField(null=True, blank=True)
     photo = models.ImageField(upload_to='members/', null=True, blank=True)
-
+    class Meta:
+            ordering = ["full_name"]
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
@@ -65,7 +69,9 @@ class Member(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
     address = models.TextField(blank=True)
+    
 
+    
     # 🔹 Status
     is_active = models.BooleanField(default=True)
     emergency_contact = models.CharField(max_length=100, blank=True)
@@ -83,6 +89,13 @@ class Member(models.Model):
 
     def attendance_count(self):
         return self.attendance_set.filter(present=True).count()
+    def attendance_percentage(self):
+        total = self.attendance_set.count()
+        if total == 0:
+            return 0
+        present = self.attendance_set.filter(present=True).count()
+        return round((present / total) * 100, 1)
+    
 
 class Profile(models.Model):
     ROLE_CHOICES = [
@@ -97,6 +110,7 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
+        
 
 
 class Attendance(models.Model):
@@ -115,7 +129,7 @@ class Attendance(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     service_type = models.CharField(max_length=150, choices=SERVICE_CHOICES)
     date = models.DateField()
-    present = models.BooleanField(default=True)
+    present = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
@@ -169,6 +183,7 @@ class DailyChurchReport(models.Model):
 
 
 class Promise(models.Model):
+    fulfilled = models.BooleanField(default=False, help_text="Mark as fulfilled when promise is completed")
     PROMISE_TYPE_CHOICES = (
         ('money', 'Money'),
         ('item', 'Item'),
@@ -198,3 +213,84 @@ class Promise(models.Model):
 
     def __str__(self):
         return f"{self.member_name} - {self.promise_type}"
+
+
+
+class Income(models.Model):
+    INCOME_TYPE_CHOICES = [
+        ("tithe", "Tithe"),
+        ("annual_harvest", "Annual Harvest"),
+        ("ntintam", "Ntintam"),
+        ("thanksgiving", "Thanksgiving"),
+        ("donation", "Donation"),
+        ("offering", "Offering"),
+        ("other", "Other"),
+    ]
+
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    income_type = models.CharField(max_length=30, choices=INCOME_TYPE_CHOICES)
+    date = models.DateField()
+    description = models.CharField(max_length=255, blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['income_type']),
+        ]
+        ordering = ['-date', '-created_at']
+
+    def __str__(self):
+        return f"{self.get_income_type_display()} - {self.amount} on {self.date}"
+
+    def clean(self):
+        if self.amount <= 0:
+            raise ValidationError("Amount must be greater than zero")
+# Church Expense Model
+class Expense(models.Model):
+    EXPENSE_CATEGORY_CHOICES = [
+        ("utilities", "Utilities"),
+        ("maintenance", "Maintenance"),
+        ("salary", "Salary"),
+        ("event", "Event"),
+        ("charity", "Charity"),
+        ("supplies", "Supplies"),
+        ("other", "Other"),
+    ]
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    category = models.CharField(max_length=30, choices=EXPENSE_CATEGORY_CHOICES)
+    date = models.DateField()
+    description = models.CharField(max_length=255, blank=True)
+    recorded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"{self.get_category_display()} - {self.amount} on {self.date}"
+# Church Income Model
+
+
+
+
+class Announcement(models.Model):
+    title = models.CharField(max_length=150)
+    message = models.TextField()
+    date = models.DateField(auto_now_add=True)
+    display_date = models.DateField(null=True, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title

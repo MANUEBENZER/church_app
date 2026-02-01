@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tithes Records{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/finance_dashboard.css' %}">
+
+<main class="content">
+
+    <!-- ================= HEADER ================= -->
+    <div class="page-header">
+        <h1>Tithes Records</h1>
+        <span class="date">{{ current_month }} {{ current_year }}</span>
+    </div>
+
+    <!-- ================= MONTHLY TOTALS ================= -->
+    <section class="cards">
+        <div class="card">
+            <h3>This Month</h3>
+            <p>GHS {{ monthly_total }}</p>
+        </div>
+        <div class="card">
+            <h3>Total Records</h3>
+            <p>{{ total_records }}</p>
+        </div>
+        <div class="card">
+            <h3>Highest Tithe</h3>
+            <p>GHS {{ highest_tithe }}</p>
+        </div>
+    </section>
+
+    <!-- ================= SEARCH + ACTIONS ================= -->
+    <section class="table-actions">
+        <form method="get" class="search-form">
+            <input type="text" name="member" placeholder="Search member..." value="{{ request.GET.member }}">
+            <input type="date" name="date" value="{{ request.GET.date }}">
+            <button type="submit">Search</button>
+        </form>
+
+        <div class="action-buttons">
+            <button onclick="window.print()" class="btn-secondary">🖨 Print</button>
+            <a href="{% url 'members:tithes_pdf' %}" class="btn-secondary">📄 Export PDF</a>
+        </div>
+    </section>
+
+    <!-- ================= TITHES TABLE ================= -->
+    <section class="table-section">
+        <table class="responsive-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount (GHS)</th>
+                    <th>Description</th>
+                    <th>Recorded By</th>
+                    <th>Actions</th>
+                </tr>
+                <a href="{% url 'members:add_tithe' %}" class="btn-primary">➕ Add Tithe</a>
+            </thead>
+
+            <tbody>
+                {% for tithe in tithes %}
+                    <tr>
+                        <td>{{ tithe.date }}</td>
+                        <td>GHS {{ tithe.amount }}</td>
+                        <td>{{ tithe.description|default:"—" }}</td>
+                        <td>
+                            {{ tithe.recorded_by.username|default:"System" }}
+                        </td>
+                        <td>
+                            <a href="{% url 'edit_tithe' tithe.id %}">✏️</a>
+                            <a href="{% url 'delete_tithe' tithe.id %}"
+                            onclick="return confirm('Delete this record?')">🗑</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align:center;">No records found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+</main>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Promises Dashboard{% endblock %}
+{% load static %}
+{% load role_tags %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/promises_dashboard.css' %}">
+<script src="{% static 'js/promise.js' %}"></script>
+<!-- GRADIENT HEADER -->
+<header class="page-header gradient-header">
+    <h1>📢 Daily Promises </h1>
+    <p class="page-date">{{ today|date:"F d, Y" }}</p>
+    <section class="summary-grid">
+        <div class="summary-card glass">
+            <span>Total Members</span>
+            <h2>{{ attendance_summary.total_members }}</h2>
+        </div>
+        <div class="summary-card glass success">
+            <span>Present</span>
+            <h2>{{ attendance_summary.total_present }}</h2>
+        </div>
+        <div class="summary-card glass danger">
+            <span>Absent</span>
+            <h2>{{ attendance_summary.total_absent }}</h2>
+        </div>
+    </section>
+</header>
+<div class="dashboard-container">
+    <!-- SUMMARY CARDS -->
+    
+    <!-- PAGE TITLE --
+    <h2>Promises Dashboard – {{ today }}</h2>-->
+    <!-- ACTION BAR -->
+    
+    <!-- Buttons (RIGHT) -->
+        <div class="action-buttons container">
+            <div class="row">
+                <div class="col">
+                   <div class="actions-bar">
+        <!-- Search (LEFT) -->
+                        <form method="get" class="search-form">
+                            <input type="text"
+                                name="q"
+                                placeholder="Search promises..."
+                                value="{{ request.GET.q }}">
+                            <button type="submit">🔍 Search</button>
+                        </form>  
+                    </div>
+                </div>
+                <div class="col">
+                <a href="{% url 'members:export_promises_pdf' %}" class="btn-secondary">⬇ PDF</a>
+                </div>
+                <div class="col">
+                <a href="{% url 'members:export_promises_excel' %}" class="btn-secondary">⬇ Excel</a>
+                </div>
+                <div class="col">
+                {% if user|has_group:"Secretary" %}
+                <a href="{% url 'members:add_promise' %}" class="btn-primary">
+                    ➕ Add Promise
+                </a>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+
+    <!-- TABLE -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    <th>Photo</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Item</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    {% if user|has_group:"Secretary" %}
+                        <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+            {% for promise in promises %}
+                <tr class="{% if promise.due_date and promise.due_date < today and not promise.fulfilled %}overdue{% endif %}">
+                    <td>{{ promise.member_name }}</td>
+
+                    <td>
+                        {% if promise.member and promise.member.photo %}
+                            <img src="{{ promise.member.photo.url }}" class="member-thumbnail">
+                        {% else %}
+                            <img src="{% static 'images/default_profile.png' %}" class="member-thumbnail">
+                        {% endif %}
+                    </td>
+
+                    <td>{{ promise.get_promise_type_display }}</td>
+
+                    <td>
+                        {% if promise.promise_type == 'money' %}
+                            {{ promise.amount }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if promise.promise_type == 'item' %}
+                            {{ promise.item_description }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>{{ promise.due_date|date:"M d, Y" }}</td>
+
+                    <td>
+                        {% if promise.fulfilled %}
+                            <span class="status fulfilled">Fulfilled</span>
+                        {% elif promise.due_date and promise.due_date < today %}
+                            <span class="status overdue">Overdue</span>
+                        {% else %}
+                            <span class="status unfulfilled">Unfulfilled</span>
+                        {% endif %}
+                    </td>
+
+                    {% if user|has_group:"Secretary" %}
+                    <td>
+                        <a href="{% url 'members:edit_promise' promise.id %}">✏️ Edit</a>
+
+                        <form method="post"
+                              action="{% url 'members:delete_promise' promise.id %}"
+                              style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    onclick="return confirm('Delete this promise?');">
+                                🗑️ Delete
+                            </button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8">No promises recorded.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

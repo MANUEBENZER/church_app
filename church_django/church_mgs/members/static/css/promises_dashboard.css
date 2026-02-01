@@ -1,0 +1,235 @@
+/* General Layout */
+body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background: #f3f4f6;
+    margin: 0;
+    color: #374151;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1.5rem;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+/* Gradient Header */
+.gradient-header {
+    background: linear-gradient(135deg, #2563eb, #9333ea);
+    color: #fff;
+    padding: 1.5rem;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.gradient-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+.page-date {
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+/* Summary Cards */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+.summary-card {
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: center;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.summary-card h2 {
+    margin: 0.5rem 0 0;
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+.summary-card.success { border-left: 4px solid #10b981; }
+.summary-card.danger { border-left: 4px solid #ef4444; }
+
+/* Horizontal Sections */
+.horizontal-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+.horizontal-sections .card {
+    flex: 1 1 350px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+/* Card Titles */
+.card-title {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Hover Animation */
+.hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+/* Forms */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-group.full {
+    grid-column: 1 / -1;
+}
+.form-group label {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    color: #374151;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.6rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+.btn-primary {
+    background: #2563eb;
+    color: #fff;
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+/* Tables */
+.table-wrapper {
+    overflow-x: auto;
+}
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+.table th, .table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+.table th {
+    background: #f3f4f6;
+    font-weight: 600;
+    color: #374151;
+}
+.table .empty {
+    text-align: center;
+    color: #9ca3af;
+}
+.striped-table tbody tr:nth-child(odd) {
+    background: #f9fafb;
+}
+.striped-table tbody tr:hover {
+    background: #eef2ff;
+}
+
+/* Member Thumbnail */
+.member-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Meta Info */
+.meta {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: right;
+    margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .horizontal-sections {
+        flex-direction: column;
+    }
+}
+
+
+
+
+
+/* ==========================
+   Promises Dashboard Desktop Styling
+   ========================== */
+@media (min-width: 992px) {
+
+    /* HEADER & ACTION BAR SPACING */
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .actions-bar {
+        margin-top: 10px;
+        margin-bottom: 25px;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    /* SEARCH FORM */
+    .search-form {
+        max-width: 420px;
+    }
+
+    /* BUTTONS IN ONE LINE */
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: nowrap; /* keep buttons on one line */
+    }
+
+    .action-buttons a {
+        white-space: nowrap; /* prevent text wrap */
+    }
+}
+
+
+
+
+
+
+

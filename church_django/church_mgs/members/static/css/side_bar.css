@@ -16,11 +16,19 @@
     background: #1e293b;
     color: white;
     transition: width 0.3s ease;
-    overflow: hidden;
-}
 
+    position: fixed;      /* KEY */
+    top: 0;
+    left: 0;
+    height: 100vh;        /* Full screen */
+    overflow-y: auto;     /* Scroll if menu grows */
+}
 .sidebar.collapsed {
     width: 70px;
+}
+
+.sidebar.collapsed ~ .content {
+    margin-left: 70px;
 }
 
 .sidebar-header {
@@ -29,6 +37,10 @@
     align-items: center;
     padding: 15px;
     background: #0f172a;
+}
+
+body {
+    overflow-x: hidden;
 }
 
 .logo {
@@ -61,8 +73,10 @@
 }
 
 /* Main content */
+
 .content {
-    flex: 1;
+    margin-left: 250px;   /* SAME as sidebar width */
     padding: 20px;
     background: #f1f5f9;
+    min-height: 100vh;
 }

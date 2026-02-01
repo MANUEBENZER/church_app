@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+{% load role_tags %}
+
+{% block title %}Finance Dashboard{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/finance_dashboard.css' %}">
+
+<main class="content">
+
+    <!-- ================== TITHES ================== -->
+    <section id="tithes" class="finance-section">
+        <div class="page-header">
+            <h1>Tithes Overview</h1>
+            <span class="date">{{ current_month }} {{ current_year }}</span>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Amount</h3>
+                <p>GHS 12,450.00</p>
+            </div>
+            <div class="card">
+                <h3>Total Records</h3>
+                <p>86</p>
+            </div>
+            <div class="card">
+                <h3>This Month</h3>
+                <p>GHS 3,200.00</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================== OFFERING ================== -->
+    <section id="offering" class="finance-section">
+        <div class="page-header">
+            <h1>Offering Overview</h1>
+            <span class="date">{{ current_month }} {{ current_year }}</span>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Amount</h3>
+                <p>GHS 12,450.00</p>
+            </div>
+            <div class="card">
+                <h3>Total Records</h3>
+                <p>86</p>
+            </div>
+            <div class="card">
+                <h3>This Month</h3>
+                <p>GHS 3,200.00</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================== WELFARE ================== -->
+    <section id="welfare" class="finance-section">
+        <div class="page-header">
+            <h1>Welfare Overview</h1>
+            <span class="date">{{ current_month }} {{ current_year }}</span>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Amount</h3>
+                <p>GHS 12,450.00</p>
+            </div>
+            <div class="card">
+                <h3>Total Records</h3>
+                <p>86</p>
+            </div>
+            <div class="card">
+                <h3>This Month</h3>
+                <p>GHS 3,200.00</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================== NTINTAM ================== -->
+    <section id="ntintam" class="finance-section">
+        <div class="page-header">
+            <h1>Ntintam Overview</h1>
+            <span class="date">{{ current_month }} {{ current_year }}</span>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Amount</h3>
+                <p>GHS 12,450.00</p>
+            </div>
+            <div class="card">
+                <h3>Total Records</h3>
+                <p>86</p>
+            </div>
+            <div class="card">
+                <h3>This Month</h3>
+                <p>GHS 3,200.00</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================== THANKSGIVING ================== -->
+    <section id="thanksgiving" class="finance-section">
+        <div class="page-header">
+            <h1>Thanksgiving Overview</h1>
+            <span class="date">{{ current_month }} {{ current_year }}</span>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Amount</h3>
+                <p>GHS 12,450.00</p>
+            </div>
+            <div class="card">
+                <h3>Total Records</h3>
+                <p>86</p>
+            </div>
+            <div class="card">
+                <h3>This Month</h3>
+                <p>GHS 3,200.00</p>
+            </div>
+        </div>
+    </section>
+
+</main>
+{% endblock %}

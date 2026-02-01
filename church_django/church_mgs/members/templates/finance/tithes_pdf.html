@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Tithes Records</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #333; padding: 5px; text-align: left; }
+        th { background-color: #f0f0f0; }
+        h1, h3 { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+    <h1>Tithes Records - {{ current_month }} {{ current_year }}</h1>
+
+    <h3>Monthly Total: GHS {{ monthly_total }}</h3>
+    <h3>Total Records: {{ total_records }}</h3>
+    <h3>Highest Tithe: GHS {{ highest_tithe }}</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Amount (GHS)</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tithe in tithes %}
+            <tr>
+                <td>{{ tithe.recorded_by.username if tithe.recorded_by else 'N/A' }}</td>
+                <td>{{ tithe.amount }}</td>
+                <td>{{ tithe.date }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align:center;">No records found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

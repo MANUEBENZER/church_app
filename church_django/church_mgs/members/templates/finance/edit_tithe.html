@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Tithe{% endblock %}
+
+{% block content %}
+<main class="content">
+    <div class="page-header">
+        <h1>Edit Tithe</h1>
+    </div>
+
+    <form method="post" class="form-container">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <a href="{% url 'tithes_records' %}" class="btn-secondary">Cancel</a>
+    </form>
+</main>
+{% endblock %}

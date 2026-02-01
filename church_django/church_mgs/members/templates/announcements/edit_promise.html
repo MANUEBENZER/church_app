@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Edit Promise</h2>
+<form method="post">
+    {% csrf_token %}
+    <label>Member Name: <input type="text" name="member_name" value="{{ promise.member_name }}" required></label><br>
+    <label>Promise Type:
+        <select name="promise_type">
+            <option value="money" {% if promise.promise_type == 'money' %}selected{% endif %}>Money</option>
+            <option value="item" {% if promise.promise_type == 'item' %}selected{% endif %}>Item</option>
+        </select>
+    </label><br>
+    <label>Amount: <input type="number" name="amount" step="0.01" value="{{ promise.amount }}"></label><br>
+    <label>Item Description: <input type="text" name="item" value="{{ promise.item_description }}"></label><br>
+    <label>Due Date: <input type="date" name="promise_due_date" value="{{ promise.due_date|date:'Y-m-d' }}"></label><br>
+    <label>Fulfilled: <input type="checkbox" name="fulfilled" {% if promise.fulfilled %}checked{% endif %}></label><br>
+    <button type="submit">Save</button>
+    <a href="{% url 'members:announcements_dashboard' %}">Cancel</a>
+</form>
+{% endblock %}
