@@ -748,6 +748,7 @@ def member_list(request):
     page_obj = paginator.get_page(page_number)
 
     return render(request, "members/member_list.html", {
+        "members": members,
         "page_obj": page_obj
     })
 

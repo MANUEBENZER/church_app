@@ -8,5 +8,94 @@
 <link rel="stylesheet" href="{% static 'css/member_list.css' %}">
 <div class="page-header">
     <h2>Church Members</h2>
-    <p class="page-subtitle">View and manage registered members</p>
+    <p class="page-subtitle">Registered church members</p>
 </div>
+
+<!-- Actions -->
+<div class="actions-bar">
+    <form method="get" class="search-form">
+        <input type="text" name="q" placeholder="Search name or ID" value="{{ request.GET.q }}">
+        <button type="submit">Search</button>
+    </form>
+
+    <div>
+        <a href="{% url 'members:export_members_excel' %}" class="btn-secondary">⬇ Excel</a>
+        <a href="{% url 'members:export_members_pdf' %}" class="btn-secondary">⬇ PDF</a>
+
+        {% if user|has_group:"Secretary" %}
+            <a href="{% url 'members:member_create' %}" class="btn-primary">➕ Add Member</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="table-container" >
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Photo</th>
+            <th>Member ID</th>
+            <th>Full Name</th>
+            <th>Gender</th>
+            <th>Department</th>
+            <th>Position</th>
+            <th>Attendance</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for member in page_obj %}
+        <tr>
+            <td>
+                {% if member.photo %}
+                    <img src="{{ member.photo.url }}" class="avatar">
+                {% else %}
+                    <img src="{% static 'img/avatar.png' %}" class="avatar">
+                {% endif %}
+            </td>
+            <td>{{ member.membership_id }}</td>
+            <td>{{ member.full_name }}</td>
+            <td>{{ member.gender }}</td>
+            <td>{{ member.department }}</td>
+            <td>{{ member.position }}</td>
+            <td><strong>{{ member.attendance_count }}</strong></td>
+            <td>
+                {% if member.is_active %}
+                    <span class="badge success">Active</span>
+                {% else %}
+                    <span class="badge danger">Inactive</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'members:member_detail' member.id %}" class="btn-view">View</a>
+
+                {% if user|has_group:"Secretary" %}
+                    <a href="{% url 'members:member_edit' member.id %}" class="btn-edit">Edit</a>
+                {% endif %}
+
+                {% if user.is_superuser %}
+                    <a href="{% url 'members:member_delete' member.id %}" class="btn-delete">Delete</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="9" class="empty-row">No members found</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<!-- Pagination -->
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">« Prev</a>
+    {% endif %}
+
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Next »</a>
+    {% endif %}
+</div>
+
+{% endblock %}
